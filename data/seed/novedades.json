@@ -1,0 +1,44 @@
+[
+  {
+    "id": "revista-arquitectura",
+    "title": "Firma invitada: arquitectura modular en el frontend",
+    "excerpt": "Colaboración explicando cómo dividir una aplicación por dominios sin caer en la sobreingeniería.",
+    "category": "Revista",
+    "source": "Revista Tecnología & Desarrollo",
+    "date": "Junio 2026",
+    "href": "/"
+  },
+  {
+    "id": "diario-entrevista",
+    "title": "Entrevista sobre tecnología regional",
+    "excerpt": "Conversación acerca del crecimiento del desarrollo de software y las oportunidades locales.",
+    "category": "Diario",
+    "source": "Diario La Mañana",
+    "date": "Mayo 2026",
+    "href": "/"
+  },
+  {
+    "id": "publicacion-next",
+    "title": "Next.js App Router a fondo",
+    "excerpt": "Artículo práctico sobre server components, layouts y organización de carpetas.",
+    "category": "Publicación",
+    "date": "Abril 2026",
+    "href": "/"
+  },
+  {
+    "id": "comunicado-estudio",
+    "title": "Nuevo desarrollo web para Estudio Rivas",
+    "excerpt": "Estoy desarrollando la plataforma de gestión de clientes para un estudio contable.",
+    "category": "Comunicado",
+    "date": "Marzo 2026",
+    "href": "/"
+  },
+  {
+    "id": "comunicado-producto",
+    "title": "Me sumo al equipo de Producto en Acme SA",
+    "excerpt": "Desde este mes formo parte del área de Producto trabajando en una app de streaming.",
+    "category": "Comunicado",
+    "date": "Febrero 2026",
+    "href": "/"
+  }
+]

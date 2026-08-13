@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: dark;
+  --background: #060b18;
+  --foreground: #f2f6ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --color-zinc-50: #eef3ff;
+  --color-zinc-100: #dbe3fb;
+  --color-zinc-200: #b7c5ee;
+  --color-zinc-300: #8fa1da;
+  --color-zinc-400: #6679b8;
+  --color-zinc-500: #4b5c93;
+  --color-zinc-600: #37466f;
+  --color-zinc-700: #283450;
+  --color-zinc-800: #1b2440;
+  --color-zinc-900: #131b30;
+  --color-zinc-950: #0a1020;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.35);
+  color: #f2f6ff;
+}
+
+main {
+  animation: fade-up 0.5s ease-out both;
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+
+@utility animate-scale-in {
+  animation: scale-in 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  main,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none;
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
