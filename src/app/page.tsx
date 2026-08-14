@@ -58,7 +58,7 @@ export default async function Home() {
       <section className="flex flex-col items-center gap-6 pb-16 pt-24 text-center">
         <div className="flex flex-col items-center gap-4">
           <p className="animate-fade-up text-sm font-medium text-zinc-400">
-            Hola, soy
+            Hola, Bienvenidos a
           </p>
           <h1 className="animate-fade-up text-5xl font-bold tracking-tight sm:text-6xl [animation-delay:80ms]">
             {siteConfig.name}

@@ -2,12 +2,12 @@ import type { NavItem, SocialLink } from "@/types";
 
 export const siteConfig = {
   name: "Sistemas Liam",
-  heroName: "LIAM BIALY",
+  heroName: "Liam Bialy",
   title: "Sistemas Liam",
   titleDefault: "Sistemas Liam",
   titleTemplate: "%s | Sistemas Liam",
   description:
-    "Liam Bialy, analista en sistemas y desarrollador fullstack en Argentina. Sistemas Liam: proyectos, novedades y desarrollo web con Next.js, React y TypeScript.",
+    "Analista en sistemas y desarrollador fullstack en Argentina.",
   url: "https://sistemasliam.com.ar",
   location: "Posadas, Misiones, Argentina",
   author: {
