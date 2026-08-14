@@ -10,15 +10,16 @@ export type NovedadMutationResult = {
 };
 
 const UPSERT = `
-INSERT INTO novedades (id, title, excerpt, category, source, date, href)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO novedades (id, title, excerpt, category, source, date, href, image_url)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (id) DO UPDATE SET
   title = EXCLUDED.title,
   excerpt = EXCLUDED.excerpt,
   category = EXCLUDED.category,
   source = EXCLUDED.source,
   date = EXCLUDED.date,
-  href = EXCLUDED.href
+  href = EXCLUDED.href,
+  image_url = EXCLUDED.image_url
 `;
 
 export async function saveNovedad(
@@ -46,7 +47,13 @@ export async function saveNovedad(
       novedad.source ?? null,
       novedad.date,
       novedad.href,
+      novedad.imageUrl ?? null,
     ]);
+    await pool.query(
+      `INSERT INTO novedad_categorias (name) VALUES ($1)
+       ON CONFLICT (name) DO NOTHING`,
+      [novedad.category],
+    );
     revalidatePath("/");
     return {};
   } catch (error) {

@@ -1,10 +1,10 @@
 import type { NavItem, SocialLink } from "@/types";
 
 export const siteConfig = {
-  name: "Liam",
-  title: "Portfolio de Liam",
-  description:
-    "Desarrollador full-stack con foco en experiencias web rápidas y accesibles.",
+  name: "Sistemas Liam",
+  heroName: "LIAM BIALY",
+  title: "Sistemas Liam",
+  description: "Analista en sistemas y Desarrollador Fullstack",
   url: "https://liam.dev",
 };
 

@@ -19,7 +19,7 @@ export default async function Home() {
             Hola, soy
           </p>
           <h1 className="animate-fade-up text-5xl font-bold tracking-tight sm:text-6xl [animation-delay:80ms]">
-            {siteConfig.name}
+            {siteConfig.heroName}
           </h1>
           <div className="h-1 w-16 animate-fade-up rounded-full bg-gradient-to-r from-sky-400 to-blue-600 [animation-delay:120ms]" />
           <p className="max-w-xl animate-fade-up leading-7 text-zinc-400 [animation-delay:160ms]">

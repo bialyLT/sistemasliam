@@ -12,4 +12,5 @@ export type Novedad = {
   source?: string;
   date: string;
   href: string;
+  imageUrl?: string;
 };

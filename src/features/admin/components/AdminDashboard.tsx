@@ -20,6 +20,7 @@ import type { Project } from "@/features/projects";
 type AdminDashboardProps = {
   projects: Project[];
   novedades: Novedad[];
+  categoriasNovedad: string[];
 };
 
 type AdminTab = "projects" | "novedades";
@@ -71,16 +72,6 @@ const projectFields: FieldConfig[] = [
 
 const projectColumns = ["title", "year", "tags"];
 
-const novedadFields: FieldConfig[] = [
-  { key: "title", label: "Título" },
-  { key: "excerpt", label: "Resumen", type: "textarea" },
-  { key: "category", label: "Categoría" },
-  { key: "source", label: "Medio (revista, diario…)" },
-  { key: "date", label: "Fecha" },
-  { key: "href", label: "Link" },
-  { key: "id", label: "Id", hidden: true },
-];
-
 const novedadColumns = ["title", "category", "date"];
 
 function newProject(): Project {
@@ -103,14 +94,30 @@ function newNovedad(): Novedad {
     excerpt: "",
     category: "Comunicado",
     source: "",
-    date: "",
+    date: new Date().toISOString().slice(0, 10),
     href: "/",
+    imageUrl: "",
   };
 }
 
-export function AdminDashboard({ projects, novedades }: AdminDashboardProps) {
+export function AdminDashboard({
+  projects,
+  novedades,
+  categoriasNovedad,
+}: AdminDashboardProps) {
   const router = useRouter();
   const [tab, setTab] = useState<AdminTab>("projects");
+
+  const novedadFields: FieldConfig[] = [
+    { key: "title", label: "Título" },
+    { key: "excerpt", label: "Resumen", type: "textarea" },
+    { key: "category", label: "Categoría", suggestions: categoriasNovedad },
+    { key: "source", label: "Medio (revista, diario…)" },
+    { key: "date", label: "Fecha", type: "date" },
+    { key: "href", label: "Link" },
+    { key: "imageUrl", label: "Imagen", imageUpload: true },
+    { key: "id", label: "Id", hidden: true },
+  ];
 
   function refresh() {
     router.refresh();

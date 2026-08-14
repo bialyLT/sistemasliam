@@ -5,16 +5,21 @@ import { cn } from "@/lib/utils";
 import {
   deleteVideoObject,
   getVideoUploadUrl,
+  getImageUploadUrl,
+  deleteImageObject,
 } from "@/features/admin/actions/upload";
 import { VideoUploader } from "@/features/admin/components/VideoUploader";
+import { ImageUploader } from "@/features/admin/components/ImageUploader";
 
 export type FieldConfig = {
   key: string;
   label: string;
-  type?: "text" | "number" | "textarea";
+  type?: "text" | "number" | "textarea" | "date";
   listOf?: boolean;
   hidden?: boolean;
   videoUpload?: boolean;
+  imageUpload?: boolean;
+  suggestions?: string[];
 };
 
 type Row<T> = T & { _localKey?: string };
@@ -93,6 +98,8 @@ export function EditableItemList<T extends Record<string, unknown>>({
 
   const visibleFields = fields.filter((field) => !field.hidden);
   const videoFields = visibleFields.filter((field) => field.videoUpload);
+  const imageFields = visibleFields.filter((field) => field.imageUpload);
+  const mediaFields = [...videoFields, ...imageFields];
 
   const rows: Row<T>[] = [
     ...newRows,
@@ -154,12 +161,19 @@ export function EditableItemList<T extends Record<string, unknown>>({
     setErrors((prev) => ({ ...prev, [rowKey(row)]: "" }));
   }
 
-  async function cleanupRemovedVideos(original: Row<T>, finalRow: T) {
+  async function cleanupRemovedMedia(original: Row<T>, finalRow: T) {
     for (const field of videoFields) {
       const before = (original as Record<string, unknown>)[field.key];
       const after = (finalRow as Record<string, unknown>)[field.key];
       if (typeof before === "string" && before && before !== after) {
         await deleteVideoObject(before);
+      }
+    }
+    for (const field of imageFields) {
+      const before = (original as Record<string, unknown>)[field.key];
+      const after = (finalRow as Record<string, unknown>)[field.key];
+      if (typeof before === "string" && before && before !== after) {
+        await deleteImageObject(before);
       }
     }
   }
@@ -172,7 +186,7 @@ export function EditableItemList<T extends Record<string, unknown>>({
     let finalRow = row as T;
     const merged: Record<string, unknown> = {};
 
-    for (const field of videoFields) {
+    for (const field of mediaFields) {
       const fKey = fieldKey(row, field);
       const pendingFile = pendingFiles[fKey] ?? null;
       if (!pendingFile) continue;
@@ -180,7 +194,8 @@ export function EditableItemList<T extends Record<string, unknown>>({
       setUploadingKeys((prev) => ({ ...prev, [fKey]: true }));
       setUploadProgress((prev) => ({ ...prev, [fKey]: 0 }));
 
-      const signed = await getVideoUploadUrl(
+      const getUploadUrl = field.videoUpload ? getVideoUploadUrl : getImageUploadUrl;
+      const signed = await getUploadUrl(
         pendingFile.file.name,
         pendingFile.file.type,
       );
@@ -214,7 +229,7 @@ export function EditableItemList<T extends Record<string, unknown>>({
       } catch {
         setErrors((prev) => ({
           ...prev,
-          [key]: "Ocurrió un error al subir el video.",
+          [key]: "Ocurrió un error al subir el archivo.",
         }));
         setUploadingKeys((prev) => ({ ...prev, [fKey]: false }));
         setPending((prev) => ({ ...prev, [key]: false }));
@@ -248,7 +263,7 @@ export function EditableItemList<T extends Record<string, unknown>>({
     }
     setErrors((prev) => ({ ...prev, [key]: "" }));
 
-    for (const field of videoFields) {
+    for (const field of mediaFields) {
       dropPending(fieldKey(row, field));
     }
 
@@ -257,7 +272,7 @@ export function EditableItemList<T extends Record<string, unknown>>({
         (item) => keyOf(item as T) === keyOf(row as T),
       ) as Row<T> | undefined;
       if (original) {
-        await cleanupRemovedVideos(original, finalRow);
+        await cleanupRemovedMedia(original, finalRow);
       }
     }
   }
@@ -285,10 +300,14 @@ export function EditableItemList<T extends Record<string, unknown>>({
     }
 
     if (original) {
-      for (const field of videoFields) {
+      for (const field of mediaFields) {
         const value = (original as Record<string, unknown>)[field.key];
         if (typeof value === "string" && value) {
-          await deleteVideoObject(value);
+          if (field.videoUpload) {
+            await deleteVideoObject(value);
+          } else {
+            await deleteImageObject(value);
+          }
         }
       }
     }
@@ -296,7 +315,7 @@ export function EditableItemList<T extends Record<string, unknown>>({
 
   function cancel(row: Row<T>) {
     const key = rowKey(row);
-    for (const field of videoFields) {
+    for (const field of mediaFields) {
       dropPending(fieldKey(row, field));
     }
     if (row._localKey) {
@@ -395,6 +414,19 @@ export function EditableItemList<T extends Record<string, unknown>>({
                                   }
                                   onRemoveValue={() => updateValue(row, field, "")}
                                 />
+                              ) : field.imageUpload ? (
+                                <ImageUploader
+                                  value={toInputValue(row[field.key])}
+                                  pending={pendingFiles[fieldKey(row, field)] ?? null}
+                                  uploading={!!uploadingKeys[fieldKey(row, field)]}
+                                  progress={uploadProgress[fieldKey(row, field)] ?? null}
+                                  error={error}
+                                  onSelect={(file) => selectFile(row, field, file)}
+                                  onClearPending={() =>
+                                    dropPending(fieldKey(row, field))
+                                  }
+                                  onRemoveValue={() => updateValue(row, field, "")}
+                                />
                               ) : field.type === "textarea" ? (
                                 <textarea
                                   value={toInputValue(row[field.key])}
@@ -403,6 +435,23 @@ export function EditableItemList<T extends Record<string, unknown>>({
                                   }
                                   className={textareaClass}
                                 />
+                              ) : field.suggestions ? (
+                                <>
+                                  <input
+                                    type={field.type ?? "text"}
+                                    list={fieldKey(row, field)}
+                                    value={toInputValue(row[field.key])}
+                                    onChange={(event) =>
+                                      updateValue(row, field, event.target.value)
+                                    }
+                                    className={inputClass}
+                                  />
+                                  <datalist id={fieldKey(row, field)}>
+                                    {field.suggestions.map((option) => (
+                                      <option key={option} value={option} />
+                                    ))}
+                                  </datalist>
+                                </>
                               ) : (
                                 <input
                                   type={field.type ?? "text"}

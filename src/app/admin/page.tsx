@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AdminDashboard, isAdminSession } from "@/features/admin";
-import { getNovedades } from "@/features/novedades";
+import { getCategoriasNovedad, getNovedades } from "@/features/novedades";
 import { getProjects } from "@/features/projects";
 
 export default async function AdminPage() {
@@ -8,10 +8,17 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  const [projects, novedades] = await Promise.all([
+  const [projects, novedades, categoriasNovedad] = await Promise.all([
     getProjects(),
     getNovedades(),
+    getCategoriasNovedad(),
   ]);
 
-  return <AdminDashboard projects={projects} novedades={novedades} />;
+  return (
+    <AdminDashboard
+      projects={projects}
+      novedades={novedades}
+      categoriasNovedad={categoriasNovedad}
+    />
+  );
 }

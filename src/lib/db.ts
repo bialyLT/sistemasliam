@@ -38,7 +38,14 @@ CREATE TABLE IF NOT EXISTS novedades (
   category TEXT NOT NULL,
   source TEXT,
   date TEXT NOT NULL,
-  href TEXT NOT NULL DEFAULT '/'
+  href TEXT NOT NULL DEFAULT '/',
+  image_url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS novedad_categorias (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 `;
 
@@ -56,6 +63,14 @@ export async function ensureSchema(): Promise<void> {
   if (!client) return;
   try {
     await client.query(SCHEMA);
+    await client.query(
+      "ALTER TABLE novedades ADD COLUMN IF NOT EXISTS image_url TEXT",
+    );
+    await client.query(
+      `INSERT INTO novedad_categorias (name)
+       SELECT DISTINCT category FROM novedades WHERE category IS NOT NULL
+       ON CONFLICT (name) DO NOTHING`,
+    );
   } catch (error) {
     console.error("[db] ensureSchema failed:", error);
   }
