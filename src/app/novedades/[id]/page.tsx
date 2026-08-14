@@ -14,7 +14,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const novedades = await getNovedades();
   const novedad = novedades.find((n) => n.id === id);
   if (!novedad) return { title: "No encontrado" };
-  return { title: `${novedad.title} | ${siteConfig.title}` };
+
+  const url = `${siteConfig.url}/novedades/${novedad.id}`;
+
+  return {
+    title: novedad.title,
+    description: novedad.excerpt,
+    alternates: {
+      canonical: `/novedades/${novedad.id}`,
+    },
+    openGraph: {
+      type: "article",
+      url,
+      title: `${novedad.title} | ${siteConfig.name}`,
+      description: novedad.excerpt,
+      siteName: siteConfig.name,
+      publishedTime: novedad.date,
+      authors: [siteConfig.author.name],
+      ...(novedad.imageUrl
+        ? { images: [{ url: novedad.imageUrl, alt: novedad.title }] }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${novedad.title} | ${siteConfig.name}`,
+      description: novedad.excerpt,
+      ...(novedad.imageUrl ? { images: [novedad.imageUrl] } : {}),
+    },
+  };
 }
 
 export default async function NovedadDetail({ params }: PageProps) {
@@ -26,9 +53,36 @@ export default async function NovedadDetail({ params }: PageProps) {
 
   const timeAgo = relativeTime(novedad.date);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: novedad.title,
+    description: novedad.excerpt,
+    datePublished: novedad.date,
+    author: {
+      "@type": "Person",
+      name: siteConfig.author.name,
+      url: siteConfig.author.url,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    ...(novedad.imageUrl ? { image: novedad.imageUrl } : {}),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${siteConfig.url}/novedades/${novedad.id}`,
+    },
+  };
+
   return (
     <main className="flex-1">
       <article className="mx-auto w-full max-w-3xl px-6 py-12">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
           <GoBack href="/" className="mb-8">
             Volver
           </GoBack>

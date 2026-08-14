@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { GoBack } from "@/components/GoBack";
 import { ProjectDetail, getProjectBySlug } from "@/features/projects";
+import { siteConfig } from "@/lib/site";
 
 type ProjectPageProps = PageProps<"/projects/[slug]">;
 
@@ -16,9 +17,26 @@ export async function generateMetadata({
     return { title: "Proyecto no encontrado" };
   }
 
+  const url = `${siteConfig.url}/projects/${project.slug}`;
+
   return {
     title: project.title,
     description: project.description,
+    alternates: {
+      canonical: `/projects/${project.slug}`,
+    },
+    openGraph: {
+      type: "website",
+      url,
+      title: `${project.title} | ${siteConfig.name}`,
+      description: project.description,
+      siteName: siteConfig.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.title} | ${siteConfig.name}`,
+      description: project.description,
+    },
   };
 }
 

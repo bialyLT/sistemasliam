@@ -1,6 +1,16 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { GoBack } from "@/components/GoBack";
 import { ProjectsSection, getProjects, getProjectTags } from "@/features/projects";
+
+export const metadata: Metadata = {
+  title: "Proyectos",
+  description:
+    "Una selección de proyectos de desarrollo web y software de Liam Bialy: plataformas de gestión, e-commerce y aplicaciones colaborativas.",
+  alternates: {
+    canonical: "/projects",
+  },
+};
 
 export default async function ProjectsPage() {
   await connection();

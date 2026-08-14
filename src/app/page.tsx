@@ -13,6 +13,43 @@ export default async function Home() {
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "WebSite",
+                "@id": `${siteConfig.url}/#website`,
+                url: siteConfig.url,
+                name: siteConfig.name,
+                description: siteConfig.description,
+                inLanguage: "es-AR",
+                publisher: {
+                  "@id": `${siteConfig.url}/#organization`,
+                },
+              },
+              {
+                "@type": "Person",
+                "@id": `${siteConfig.url}/#person`,
+                name: siteConfig.author.name,
+                url: siteConfig.author.url,
+                jobTitle: siteConfig.author.title,
+                image: `${siteConfig.url}/opengraph-image`,
+                sameAs: [siteConfig.github, siteConfig.linkedin],
+              },
+              {
+                "@type": "Organization",
+                "@id": `${siteConfig.url}/#organization`,
+                name: siteConfig.name,
+                url: siteConfig.url,
+                logo: `${siteConfig.url}/icon.svg`,
+              },
+            ],
+          }),
+        }}
+      />
       <section className="flex flex-col items-center gap-6 pb-16 pt-24 text-center">
         <div className="flex flex-col items-center gap-4">
           <p className="animate-fade-up text-sm font-medium text-zinc-400">
