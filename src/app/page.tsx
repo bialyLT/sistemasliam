@@ -28,7 +28,10 @@ export default async function Home() {
         </div>
         <div className="flex animate-fade-up flex-col gap-4 sm:flex-row [animation-delay:240ms]">
           <Button href="#proyectos">Ver proyectos</Button>
-          <Button href="mailto:hola@liam.dev" variant="secondary">
+          <Button
+            href="https://wa.me/5493764635099?text=Hola%20liam%2C%20necesito%20de%20tus%20servicios"
+            variant="secondary"
+          >
             Contactarme
           </Button>
         </div>
