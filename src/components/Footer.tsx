@@ -17,7 +17,7 @@ export function Footer() {
         ))}
       </div>
       <p>
-        © {new Date().getFullYear()} {siteConfig.name}
+        © {new Date().getFullYear()} {siteConfig.name} — {siteConfig.location}
       </p>
     </footer>
   );

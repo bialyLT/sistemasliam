@@ -7,8 +7,9 @@ export const siteConfig = {
   titleDefault: "Sistemas Liam",
   titleTemplate: "%s | Sistemas Liam",
   description:
-    "Liam Bialy, analista en sistemas y desarrollador fullstack. Proyectos, novedades y desarrollo web con Next.js, React y TypeScript.",
+    "Liam Bialy, analista en sistemas y desarrollador fullstack en Argentina. Sistemas Liam: proyectos, novedades y desarrollo web con Next.js, React y TypeScript.",
   url: "https://sistemasliam.com.ar",
+  location: "Posadas, Misiones, Argentina",
   author: {
     name: "Liam Bialy",
     title: "Analista en sistemas y Desarrollador Fullstack",

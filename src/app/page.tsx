@@ -34,9 +34,14 @@ export default async function Home() {
                 "@type": "Person",
                 "@id": `${siteConfig.url}/#person`,
                 name: siteConfig.author.name,
+                alternateName: siteConfig.name,
                 url: siteConfig.author.url,
                 jobTitle: siteConfig.author.title,
                 image: `${siteConfig.url}/opengraph-image`,
+                address: {
+                  "@type": "PostalAddress",
+                  addressCountry: "AR",
+                },
                 sameAs: [siteConfig.github, siteConfig.linkedin],
               },
               {
@@ -56,11 +61,11 @@ export default async function Home() {
             Hola, soy
           </p>
           <h1 className="animate-fade-up text-5xl font-bold tracking-tight sm:text-6xl [animation-delay:80ms]">
-            {siteConfig.heroName}
+            {siteConfig.name}
           </h1>
           <div className="h-1 w-16 animate-fade-up rounded-full bg-gradient-to-r from-sky-400 to-blue-600 [animation-delay:120ms]" />
           <p className="max-w-xl animate-fade-up leading-7 text-zinc-400 [animation-delay:160ms]">
-            {siteConfig.description}
+            {siteConfig.heroName} — {siteConfig.description}
           </p>
         </div>
         <div className="flex animate-fade-up flex-col gap-4 sm:flex-row [animation-delay:240ms]">
@@ -72,6 +77,20 @@ export default async function Home() {
             Contactarme
           </Button>
         </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-3xl border-t border-black/[.08] px-6 py-16 text-center dark:border-white/[.12]">
+        <h2 className="text-2xl font-bold tracking-tight">
+          Sobre Sistemas Liam
+        </h2>
+        <p className="mt-4 leading-7 text-zinc-600 dark:text-zinc-400">
+          Sistemas Liam es el espacio de desarrollo de{" "}
+          <strong className="text-zinc-900 dark:text-zinc-100">Liam Bialy</strong>,
+          analista en sistemas y desarrollador fullstack con base en{" "}
+          <strong className="text-zinc-900 dark:text-zinc-100">Argentina</strong>.
+          Trabajo con Next.js, React y TypeScript para crear plataformas,
+          aplicaciones web y experiencias digitales eficientes.
+        </p>
       </section>
 
       <section className="border-t border-black/[.08] py-16 dark:border-white/[.12]">
