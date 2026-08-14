@@ -14,10 +14,6 @@ export function NovedadCard({ novedad }: NovedadCardProps) {
     <article className="flex flex-col rounded-2xl border border-white/[.08] bg-white dark:border-white/[.12] dark:bg-zinc-900 overflow-hidden">
       <div className="flex items-center gap-1 px-5 pt-4 text-xs text-zinc-500">
         <span>{timeAgo}</span>
-        <span>·</span>
-        <svg className="h-3 w-3" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M8 0a8 8 0 100 16A8 8 0 008 0zm.93 12.6h-1.8V6.4h1.8v6.2zM8 5.4a1 1 0 110-2 1 1 0 010 2z" />
-        </svg>
       </div>
 
       <div className="px-5 py-3">
@@ -39,11 +35,11 @@ export function NovedadCard({ novedad }: NovedadCardProps) {
       </div>
 
       {novedad.imageUrl ? (
-        <div className="mx-4 mb-4 rounded-xl overflow-hidden border border-white/[.08] dark:border-white/[.12]">
+        <div className="mx-4 mb-4 h-48 overflow-hidden rounded-xl border border-white/[.08] bg-black dark:border-white/[.12]">
           <img
             src={novedad.imageUrl}
             alt={novedad.title}
-            className="w-full h-auto object-cover"
+            className="h-full w-full object-contain"
           />
         </div>
       ) : null}

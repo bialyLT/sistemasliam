@@ -62,21 +62,7 @@ export function NovedadesCarousel({
       onMouseLeave={() => setPaused(false)}
     >
       <div className="w-full max-w-lg">
-        <div
-          ref={trackRef}
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto"
-        >
-          {novedades.map((novedad) => (
-            <div
-              key={novedad.id}
-              className="w-full flex-none snap-center"
-            >
-              <NovedadCard novedad={novedad} />
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-center justify-center gap-4">
+        <div className="mb-5 flex items-center justify-center gap-4">
           <button
             type="button"
             onClick={() => goToIndex(activeIndex - 1)}
@@ -111,6 +97,20 @@ export function NovedadesCarousel({
           >
             &rarr;
           </button>
+        </div>
+
+        <div
+          ref={trackRef}
+          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto"
+        >
+          {novedades.map((novedad) => (
+            <div
+              key={novedad.id}
+              className="w-full flex-none snap-center"
+            >
+              <NovedadCard novedad={novedad} />
+            </div>
+          ))}
         </div>
       </div>
     </div>

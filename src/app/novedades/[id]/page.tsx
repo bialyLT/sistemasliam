@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { GoBack } from "@/components/GoBack";
 import { getNovedades } from "@/features/novedades";
 import { siteConfig } from "@/lib/site";
 import { relativeTime } from "@/lib/utils";
@@ -28,6 +29,9 @@ export default async function NovedadDetail({ params }: PageProps) {
   return (
     <main className="flex-1">
       <article className="mx-auto w-full max-w-3xl px-6 py-12">
+          <GoBack href="/" className="mb-8">
+            Volver
+          </GoBack>
           <header className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-600 text-lg font-bold text-white">
@@ -40,10 +44,6 @@ export default async function NovedadDetail({ params }: PageProps) {
             </div>
             <div className="flex items-center gap-2 text-sm text-zinc-500">
               <span>{timeAgo}</span>
-              <span>·</span>
-              <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 0a8 8 0 100 16A8 8 0 008 0zm.93 12.6h-1.8V6.4h1.8v6.2zM8 5.4a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
             </div>
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
               {novedad.title}
@@ -56,11 +56,11 @@ export default async function NovedadDetail({ params }: PageProps) {
           </header>
 
           {novedad.imageUrl ? (
-            <div className="mb-8 rounded-2xl overflow-hidden border border-white/[.08] dark:border-white/[.12]">
+            <div className="mb-8 h-80 overflow-hidden rounded-2xl border border-white/[.08] bg-black dark:border-white/[.12]">
               <img
                 src={novedad.imageUrl}
                 alt={novedad.title}
-                className="w-full h-auto object-cover"
+                className="h-full w-full object-contain"
               />
             </div>
           ) : null}

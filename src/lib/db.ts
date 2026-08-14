@@ -4,15 +4,28 @@ let pool: Pool | null | undefined;
 
 function getPool(): Pool | null {
   if (pool === undefined) {
-    const connectionString = process.env.DATABASE_URL;
+    let connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
       pool = null;
     } else {
-      const ssl =
+      const wantsSsl =
         process.env.DATABASE_SSL === "true" ||
-        /sslmode=require/.test(connectionString)
-          ? { rejectUnauthorized: false }
-          : undefined;
+        /[?&]sslmode=(require|prefer|verify-ca|verify-full)/i.test(
+          connectionString,
+        );
+
+      const queryIndex = connectionString.indexOf("?");
+      if (queryIndex !== -1) {
+        const base = connectionString.slice(0, queryIndex);
+        const params = connectionString
+          .slice(queryIndex + 1)
+          .split("&")
+          .filter((param) => param && !/^sslmode=/i.test(param));
+        connectionString =
+          params.length > 0 ? `${base}?${params.join("&")}` : base;
+      }
+
+      const ssl = wantsSsl ? { rejectUnauthorized: false } : undefined;
       pool = new Pool({ connectionString, ssl });
     }
   }
