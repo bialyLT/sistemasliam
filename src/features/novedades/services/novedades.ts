@@ -2,7 +2,11 @@ import type { Novedad } from "@/features/novedades/types";
 import { ensureSchema, getPoolOrNull } from "@/lib/db";
 import { readJsonFile } from "@/lib/store";
 
-const SELECT_ALL = "SELECT id, title, excerpt, category, source, date, href, image_url AS \"imageUrl\" FROM novedades";
+const SELECT_ALL = "SELECT id, title, excerpt, category, source, date, href, image_url AS \"imageUrl\" FROM novedades ORDER BY date DESC";
+
+function sortByDateDesc(novedades: Novedad[]): Novedad[] {
+  return [...novedades].sort((a, b) => b.date.localeCompare(a.date));
+}
 
 async function loadSeed(): Promise<Novedad[]> {
   return readJsonFile<Novedad[]>("seed/novedades.json", []);
@@ -41,7 +45,7 @@ export async function getNovedades(): Promise<Novedad[]> {
   const pool = await getPoolOrNull();
   const seed = await loadSeed();
 
-  if (!pool) return seed;
+  if (!pool) return sortByDateDesc(seed);
 
   await ensureSchema();
   await seedIfEmpty();
