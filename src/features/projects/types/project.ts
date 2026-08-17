@@ -6,5 +6,6 @@ export type Project = {
   year: number;
   tags: string[];
   href: string;
+  seoTitle?: string;
   highlights: string[];
 };

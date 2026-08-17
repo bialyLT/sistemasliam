@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS projects (
   year INTEGER NOT NULL,
   tags TEXT[] NOT NULL DEFAULT '{}',
   href TEXT NOT NULL DEFAULT '/',
+  seo_title TEXT,
   highlights TEXT[] NOT NULL DEFAULT '{}'
 );
 
@@ -78,6 +79,9 @@ export async function ensureSchema(): Promise<void> {
     await client.query(SCHEMA);
     await client.query(
       "ALTER TABLE novedades ADD COLUMN IF NOT EXISTS image_url TEXT",
+    );
+    await client.query(
+      "ALTER TABLE projects ADD COLUMN IF NOT EXISTS seo_title TEXT",
     );
     await client.query(
       `INSERT INTO novedad_categorias (name)

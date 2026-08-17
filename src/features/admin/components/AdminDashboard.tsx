@@ -52,6 +52,7 @@ function TabButton({ active, onClick, children, count }: TabButtonProps) {
 
 const projectFields: FieldConfig[] = [
   { key: "title", label: "Título" },
+  { key: "seoTitle", label: "Título SEO (opcional)" },
   { key: "description", label: "Descripción", type: "textarea" },
   { key: "video", label: "Video", videoUpload: true },
   { key: "year", label: "Año", type: "number" },
@@ -83,6 +84,7 @@ function newProject(): Project {
     year: new Date().getFullYear(),
     tags: [],
     href: "/",
+    seoTitle: "",
     highlights: [],
   };
 }

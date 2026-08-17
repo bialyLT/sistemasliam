@@ -18,23 +18,25 @@ export async function generateMetadata({
   }
 
   const url = `${siteConfig.url}/projects/${project.slug}`;
+  const metaTitle = project.seoTitle ?? project.title;
 
   return {
-    title: project.title,
+    title: metaTitle,
     description: project.description,
+    keywords: project.tags,
     alternates: {
       canonical: `/projects/${project.slug}`,
     },
     openGraph: {
       type: "website",
       url,
-      title: `${project.title} | ${siteConfig.name}`,
+      title: `${metaTitle} | ${siteConfig.name}`,
       description: project.description,
       siteName: siteConfig.name,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${project.title} | ${siteConfig.name}`,
+      title: `${metaTitle} | ${siteConfig.name}`,
       description: project.description,
     },
   };
@@ -50,8 +52,35 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: project.title,
+    description: project.description,
+    url: `${siteConfig.url}/projects/${project.slug}`,
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+    mainEntity: {
+      "@type": "Service",
+      name: project.seoTitle ?? project.title,
+      description: project.description,
+      provider: {
+        "@type": "Person",
+        name: siteConfig.author.name,
+        url: siteConfig.author.url,
+      },
+    },
+  };
+
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GoBack href="/projects" className="mb-10">
         Volver a proyectos
       </GoBack>

@@ -10,8 +10,8 @@ export type ProjectMutationResult = {
 };
 
 const UPSERT = `
-INSERT INTO projects (slug, title, description, video, year, tags, href, highlights)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO projects (slug, title, description, video, year, tags, href, seo_title, highlights)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,
   description = EXCLUDED.description,
@@ -19,6 +19,7 @@ ON CONFLICT (slug) DO UPDATE SET
   year = EXCLUDED.year,
   tags = EXCLUDED.tags,
   href = EXCLUDED.href,
+  seo_title = EXCLUDED.seo_title,
   highlights = EXCLUDED.highlights
 `;
 
@@ -47,6 +48,7 @@ export async function saveProject(
       project.year,
       project.tags,
       project.href,
+      project.seoTitle ?? null,
       project.highlights,
     ]);
     revalidatePath("/");
