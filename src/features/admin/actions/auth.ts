@@ -43,7 +43,17 @@ type AttemptRecord = { count: number; lockedUntil: number };
 
 async function readAttempt(key: string): Promise<AttemptRecord | null> {
   const pool = await getPoolOrNull();
-  if (!pool) return memoryAttempts.get(key) ?? null;
+  const fallback = async () => {
+    const rec = memoryAttempts.get(key) ?? null;
+    // Un bloqueo expirado se trata como si no existiera (decaimiento):
+    // evita que un solo fallo futuro reactive el bloqueo.
+    if (rec && rec.lockedUntil > 0 && rec.lockedUntil <= Date.now()) {
+      memoryAttempts.delete(key);
+      return null;
+    }
+    return rec;
+  };
+  if (!pool) return fallback();
   try {
     await pool.query(
       "DELETE FROM login_attempts WHERE locked_until IS NOT NULL AND locked_until < now() - interval '1 day'",
@@ -56,14 +66,18 @@ async function readAttempt(key: string): Promise<AttemptRecord | null> {
       [key],
     );
     if (res.rowCount === 0) return null;
+    const lockedUntil = res.rows[0].locked_until_ms
+      ? Number(res.rows[0].locked_until_ms)
+      : 0;
+    if (lockedUntil > 0 && lockedUntil <= Date.now()) {
+      return null;
+    }
     return {
       count: Number(res.rows[0].count) || 0,
-      lockedUntil: res.rows[0].locked_until_ms
-        ? Number(res.rows[0].locked_until_ms)
-        : 0,
+      lockedUntil,
     };
   } catch {
-    return memoryAttempts.get(key) ?? null;
+    return fallback();
   }
 }
 
@@ -140,6 +154,9 @@ export async function login(
 
   if (typeof input === "string" && isValidPassword(input, expected)) {
     await clearAttempt(ipKey);
+    // Un login exitoso demuestra humanidad: resetea tambien el contador
+    // global para no dejar el sitio en estado de gatillo facil.
+    await clearAttempt("global");
     const store = await cookies();
     store.set(sessionCookie.name, createSessionToken(), {
       httpOnly: true,
