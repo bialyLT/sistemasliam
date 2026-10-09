@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPoolOrNull } from "@/lib/db";
 import { slugify } from "@/lib/utils";
+import { isAdminSession } from "@/features/admin/services/guard";
 import type { Novedad } from "@/features/novedades/types";
 
 export type NovedadMutationResult = {
@@ -25,6 +26,9 @@ ON CONFLICT (id) DO UPDATE SET
 export async function saveNovedad(
   novedad: Novedad,
 ): Promise<NovedadMutationResult> {
+  if (!(await isAdminSession())) {
+    return { error: "Sesión expirada. Volvé a ingresar." };
+  }
   const pool = await getPoolOrNull();
   if (!pool) {
     return {
@@ -65,6 +69,9 @@ export async function saveNovedad(
 export async function deleteNovedad(
   id: string,
 ): Promise<NovedadMutationResult> {
+  if (!(await isAdminSession())) {
+    return { error: "Sesión expirada. Volvé a ingresar." };
+  }
   const pool = await getPoolOrNull();
   if (!pool) {
     return {

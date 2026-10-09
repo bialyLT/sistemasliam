@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPoolOrNull } from "@/lib/db";
 import { slugify } from "@/lib/utils";
+import { isAdminSession } from "@/features/admin/services/guard";
 import type { Project } from "@/features/projects/types";
 
 export type ProjectMutationResult = {
@@ -26,6 +27,9 @@ ON CONFLICT (slug) DO UPDATE SET
 export async function saveProject(
   project: Project,
 ): Promise<ProjectMutationResult> {
+  if (!(await isAdminSession())) {
+    return { error: "Sesión expirada. Volvé a ingresar." };
+  }
   const pool = await getPoolOrNull();
   if (!pool) {
     return {
@@ -63,6 +67,9 @@ export async function saveProject(
 export async function deleteProject(
   slug: string,
 ): Promise<ProjectMutationResult> {
+  if (!(await isAdminSession())) {
+    return { error: "Sesión expirada. Volvé a ingresar." };
+  }
   const pool = await getPoolOrNull();
   if (!pool) {
     return {
