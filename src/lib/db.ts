@@ -25,7 +25,8 @@ function getPool(): Pool | null {
           params.length > 0 ? `${base}?${params.join("&")}` : base;
       }
 
-      const ssl = wantsSsl ? { rejectUnauthorized: false } : undefined;
+      const insecure = process.env.DATABASE_SSL_INSECURE === "true";
+      const ssl = wantsSsl ? { rejectUnauthorized: !insecure } : undefined;
       pool = new Pool({ connectionString, ssl });
     }
   }
@@ -61,6 +62,13 @@ CREATE TABLE IF NOT EXISTS novedad_categorias (
   name TEXT NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+  key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL DEFAULT 0,
+  locked_until TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 `;
 
 export type QueryResult<T> = {
@@ -82,6 +90,9 @@ export async function ensureSchema(): Promise<void> {
     );
     await client.query(
       "ALTER TABLE projects ADD COLUMN IF NOT EXISTS seo_title TEXT",
+    );
+    await client.query(
+      "ALTER TABLE login_attempts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now()",
     );
     await client.query(
       `INSERT INTO novedad_categorias (name)
