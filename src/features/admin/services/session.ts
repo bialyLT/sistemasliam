@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const sessionCookie = {
   name: "admin_session",
-  maxAge: 60 * 60 * 24 * 7,
+  maxAge: 60 * 60 * 24,
 };
 
 type SessionPayload = {
