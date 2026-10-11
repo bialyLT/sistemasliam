@@ -11,6 +11,16 @@ import {
 // (5 fallos -> bloqueo 15 min por IP + global).
 // Umbral alto a proposito: un humano jamas hace 30 logins en 60 segundos,
 // pero un script de fuerza bruta si.
+//
+// NOTA serverless: este contador es un Map en memoria por instancia. En Vercel
+// cada request puede ir a otra instancia, por lo que este freno es fragil por
+// diseño y NO sustituye al lockout en BD. Se mantiene así a propósito porque
+// el proyecto no tiene dependencia de Redis/KV (@upstash/redis o similar no
+// está en package.json) y el edge runtime no puede usar `pg` de forma fiable.
+// Migración futura opcional: si se agrega @upstash/redis (+ UPSTASH_REDIS_REST_URL
+// y UPSTASH_REDIS_REST_TOKEN en Vercel), mover postHits a Redis con INCR +
+// EXPIRE por IP. Hasta entonces, no endurecer este umbral pensando que es la
+// protección real: la protección real es login_attempts en Postgres.
 const WINDOW_MS = 60 * 1000;
 const MAX_POSTS_PER_WINDOW = 30;
 

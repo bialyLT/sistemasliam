@@ -7,10 +7,41 @@ import {
   createSessionToken,
   sessionCookie,
 } from "@/features/admin/services/session";
-import { getPoolOrNull } from "@/lib/db";
+import { getPoolOrNull, ensureSchema } from "@/lib/db";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MS = 15 * 60 * 1000;
+
+// Clave HMAC para comparar passwords en tiempo constante. Se reutiliza
+// ADMIN_AUTH_SECRET (ya usado para firmar la cookie de sesión) en lugar de
+// una constante literal. Fallback a la literal solo para no romper build/dev
+// donde el secret puede no estar definido; en producción se loguea un warning.
+function getPasswordHmacKey(): string {
+  const secret = process.env.ADMIN_AUTH_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    console.warn(
+      "[auth] WARNING: ADMIN_AUTH_SECRET no está configurado en producción; " +
+        "usando clave HMAC de fallback para comparación de password. " +
+        "Configurar ADMIN_AUTH_SECRET en Vercel.",
+    );
+  }
+  return secret || "admin-password";
+}
+
+// Alerta fuerte (no silenciosa) cuando el lockout cae al fallback en memoria.
+// En serverless (Vercel) cada request puede ir a otra instancia y el Map en
+// memoria nunca acumula: el bloqueo jamás dispara. Solo se loguea en
+// producción para no ensuciar build/dev.
+function warnMemoryFallback(where: string): void {
+  if (process.env.NODE_ENV === "production") {
+    console.warn(
+      `[auth] WARNING: lockout usando fallback en memoria en ${where}. ` +
+        "La BD no está disponible (DATABASE_URL ausente o login_attempts inaccesible). " +
+        "El bloqueo por fuerza bruta NO es efectivo en serverless sin BD. " +
+        "Verificar DATABASE_URL y que ensureSchema() haya creado login_attempts.",
+    );
+  }
+}
 
 // Fallback en memoria: solo se usa si la BD no está disponible
 // (p. ej. build o DATABASE_URL ausente). En Vercel el bloqueo real
@@ -20,7 +51,7 @@ const memoryAttempts = new Map<string, { count: number; lockedUntil: number }>()
 export type LoginState = { error?: string } | null;
 
 function hashPassword(value: string): Buffer {
-  return createHmac("sha256", "admin-password").update(value).digest();
+  return createHmac("sha256", getPasswordHmacKey()).update(value).digest();
 }
 
 function isValidPassword(input: string, expected: string): boolean {
@@ -53,7 +84,10 @@ async function readAttempt(key: string): Promise<AttemptRecord | null> {
     }
     return rec;
   };
-  if (!pool) return fallback();
+  if (!pool) {
+    warnMemoryFallback("readAttempt");
+    return fallback();
+  }
   try {
     await pool.query(
       "DELETE FROM login_attempts WHERE locked_until IS NOT NULL AND locked_until < now() - interval '1 day'",
@@ -77,6 +111,7 @@ async function readAttempt(key: string): Promise<AttemptRecord | null> {
       lockedUntil,
     };
   } catch {
+    warnMemoryFallback("readAttempt:error");
     return fallback();
   }
 }
@@ -92,6 +127,7 @@ async function recordFailedAttempt(key: string, prev: AttemptRecord | null) {
   }
   const pool = await getPoolOrNull();
   if (!pool) {
+    warnMemoryFallback("recordFailedAttempt");
     memoryAttempts.set(key, next);
     return;
   }
@@ -106,6 +142,7 @@ async function recordFailedAttempt(key: string, prev: AttemptRecord | null) {
       [key, next.count, next.lockedUntil],
     );
   } catch {
+    warnMemoryFallback("recordFailedAttempt:error");
     memoryAttempts.set(key, next);
   }
 }
@@ -128,6 +165,14 @@ export async function login(
   const ip = await getClientIp();
   const now = Date.now();
   const ipKey = `ip:${ip}`;
+
+  // Garantiza que la tabla login_attempts exista antes de leer/escribir
+  // intentos. Antes solo la creaban los servicios de contenido público, nunca
+  // el flujo de auth: si la tabla faltaba en prod, cada query fallaba y el
+  // lockout caía en silencio al Map en memoria (inefectivo en serverless).
+  // ensureSchema() es idempotente (CREATE TABLE IF NOT EXISTS) y no-op sin
+  // DATABASE_URL, así que no rompe build/dev.
+  await ensureSchema();
 
   const [ipRecord, globalRecord] = await Promise.all([
     readAttempt(ipKey),
