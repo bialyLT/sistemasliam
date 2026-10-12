@@ -165,10 +165,10 @@ async function recordFailedAttempt(key: string, prev: AttemptRecord | null) {
   try {
     await pool.query(
       `INSERT INTO login_attempts (key, count, locked_until, updated_at)
-       VALUES ($1, $2, CASE WHEN $3 > 0 THEN to_timestamp($3 / 1000.0) ELSE NULL END, now())
+       VALUES ($1, $2, CASE WHEN ($3)::bigint > 0 THEN to_timestamp(($3)::bigint / 1000.0) ELSE NULL END, now())
        ON CONFLICT (key) DO UPDATE SET
          count = $2,
-         locked_until = CASE WHEN $3 > 0 THEN to_timestamp($3 / 1000.0) ELSE NULL END,
+         locked_until = CASE WHEN ($3)::bigint > 0 THEN to_timestamp(($3)::bigint / 1000.0) ELSE NULL END,
          updated_at = now()`,
       [key, next.count, next.lockedUntil],
     );
