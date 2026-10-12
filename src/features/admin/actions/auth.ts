@@ -32,15 +32,46 @@ function getPasswordHmacKey(): string {
 // En serverless (Vercel) cada request puede ir a otra instancia y el Map en
 // memoria nunca acumula: el bloqueo jamás dispara. Solo se loguea en
 // producción para no ensuciar build/dev.
-function warnMemoryFallback(where: string): void {
-  if (process.env.NODE_ENV === "production") {
-    console.warn(
-      `[auth] WARNING: lockout usando fallback en memoria en ${where}. ` +
-        "La BD no está disponible (DATABASE_URL ausente o login_attempts inaccesible). " +
-        "El bloqueo por fuerza bruta NO es efectivo en serverless sin BD. " +
-        "Verificar DATABASE_URL y que ensureSchema() haya creado login_attempts.",
-    );
+//
+// Prefijos por caso (para diagnóstico en Vercel Logs):
+//   [auth] DB pool=null    -> DATABASE_URL ausente (getPoolOrNull() === null)
+//   [auth] DB schema-error -> ensureSchema() falló (ver detail)
+//   [auth] DB read-error   -> SELECT en login_attempts falló (ver detail)
+//   [auth] DB write-error  -> INSERT/UPSERT en login_attempts falló (ver detail)
+// El detail incluye String(err) + `code` cuando es un error de pg
+// (ej. 42501 permiso denegado, 42P01 tabla inexistente, ETIMEDOUT /
+// ECONNREFUSED red/pooler/SSL). Nunca incluye secrets: solo nombre del error,
+// mensaje y código.
+function formatDbError(err: unknown): string {
+  if (err instanceof Error) {
+    const code = (err as { code?: unknown }).code;
+    const suffix =
+      typeof code === "string" || typeof code === "number"
+        ? ` (code=${code})`
+        : "";
+    return `${err.name}: ${err.message}${suffix}`;
   }
+  return String(err);
+}
+
+function warnMemoryFallback(where: string, err?: unknown): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const prefix = where.startsWith("pool-null")
+    ? "[auth] DB pool=null"
+    : where.startsWith("schema")
+      ? "[auth] DB schema-error"
+      : where.startsWith("read")
+        ? "[auth] DB read-error"
+        : where.startsWith("write")
+          ? "[auth] DB write-error"
+          : "[auth] DB error";
+  const detail = err === undefined ? "" : ` detail=${formatDbError(err)}`;
+  console.warn(
+    `${prefix} en ${where}.${detail} ` +
+      "Lockout usando fallback en memoria: el bloqueo por fuerza bruta " +
+      "NO es efectivo en serverless sin BD. " +
+      "Verificar DATABASE_URL y que ensureSchema() haya creado login_attempts.",
+  );
 }
 
 // Fallback en memoria: solo se usa si la BD no está disponible
@@ -85,7 +116,7 @@ async function readAttempt(key: string): Promise<AttemptRecord | null> {
     return rec;
   };
   if (!pool) {
-    warnMemoryFallback("readAttempt");
+    warnMemoryFallback("pool-null:read");
     return fallback();
   }
   try {
@@ -110,8 +141,8 @@ async function readAttempt(key: string): Promise<AttemptRecord | null> {
       count: Number(res.rows[0].count) || 0,
       lockedUntil,
     };
-  } catch {
-    warnMemoryFallback("readAttempt:error");
+  } catch (err) {
+    warnMemoryFallback("read", err);
     return fallback();
   }
 }
@@ -127,7 +158,7 @@ async function recordFailedAttempt(key: string, prev: AttemptRecord | null) {
   }
   const pool = await getPoolOrNull();
   if (!pool) {
-    warnMemoryFallback("recordFailedAttempt");
+    warnMemoryFallback("pool-null:write");
     memoryAttempts.set(key, next);
     return;
   }
@@ -141,8 +172,8 @@ async function recordFailedAttempt(key: string, prev: AttemptRecord | null) {
          updated_at = now()`,
       [key, next.count, next.lockedUntil],
     );
-  } catch {
-    warnMemoryFallback("recordFailedAttempt:error");
+  } catch (err) {
+    warnMemoryFallback("write", err);
     memoryAttempts.set(key, next);
   }
 }
@@ -171,8 +202,12 @@ export async function login(
   // el flujo de auth: si la tabla faltaba en prod, cada query fallaba y el
   // lockout caía en silencio al Map en memoria (inefectivo en serverless).
   // ensureSchema() es idempotente (CREATE TABLE IF NOT EXISTS) y no-op sin
-  // DATABASE_URL, así que no rompe build/dev.
-  await ensureSchema();
+  // DATABASE_URL, así que no rompe build/dev. Devuelve el detalle del error
+  // (o null si OK) para loguearlo con prefijo [auth] DB schema-error.
+  const schemaError = await ensureSchema();
+  if (schemaError) {
+    warnMemoryFallback("schema", schemaError);
+  }
 
   const [ipRecord, globalRecord] = await Promise.all([
     readAttempt(ipKey),

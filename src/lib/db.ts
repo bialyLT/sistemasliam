@@ -80,9 +80,9 @@ export async function getPoolOrNull(): Promise<Pool | null> {
   return getPool();
 }
 
-export async function ensureSchema(): Promise<void> {
+export async function ensureSchema(): Promise<string | null> {
   const client = getPool();
-  if (!client) return;
+  if (!client) return "pool=null (DATABASE_URL ausente)";
   try {
     await client.query(SCHEMA);
     await client.query(
@@ -99,7 +99,21 @@ export async function ensureSchema(): Promise<void> {
        SELECT DISTINCT category FROM novedades WHERE category IS NOT NULL
        ON CONFLICT (name) DO NOTHING`,
     );
+    return null;
   } catch (error) {
-    console.error("[db] ensureSchema failed:", error);
+    const code =
+      error instanceof Error
+        ? (error as { code?: unknown }).code
+        : undefined;
+    const codeSuffix =
+      typeof code === "string" || typeof code === "number"
+        ? ` (code=${code})`
+        : "";
+    const detail =
+      error instanceof Error
+        ? `${error.name}: ${error.message}${codeSuffix}`
+        : String(error);
+    console.error("[db] ensureSchema failed:", detail, error);
+    return detail;
   }
 }
